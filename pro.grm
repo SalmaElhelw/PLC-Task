@@ -1,0 +1,149 @@
+﻿
+"Start Symbol" = <Program>
+
+! -------------------------------------------------
+! Character Sets
+! -------------------------------------------------
+
+{WS}           = {Whitespace} - {CR} - {LF}
+{String Chars} = {Printable} + {HT} - ["\]
+
+! -------------------------------------------------
+! Terminals
+! -------------------------------------------------
+
+Whitespace    = {WS}+
+NewLine       = {CR}{LF} | {CR} | {LF}
+
+Identifier    = [_]?{Letter}{AlphaNumeric}*
+StringLiteral = '"' ( {String Chars} | '\' {Printable} )* '"'
+      
+Digit         = ('-'|'+')?{digit}+ ('.'{digit}+)? ('^' ('-'|'+'){digit}+ ('.'{digit}+)? )?  
+
+
+!================================! Rules===========================
+
+
+<nl>     ::= NewLine <nl>          !One or more
+          |  NewLine
+
+<nl Opt> ::= NewLine <nl Opt>      !Zero or more
+          |  !Empty
+
+! <nl opt> removes blank lines before first statement
+
+<Program>     ::= '{' <nl Opt> <Stmt_list> '}' 
+
+<Stmt_list> ::= <nl Opt> <Concept> <nl Opt>
+             |  <nl Opt> <Concept> <nl Opt> <Stmt_list>
+             
+<Concept>   ::= <Variable>
+             |  <If_stmt>
+             |  <Switch_stmt>
+             |  <For_stmt> 
+             |  <While_stmt> 
+             |  <Array>  
+             |  <Call_function>
+             |  <Print>
+  
+!====================variables=======================================
+      
+<Variable>  ::= <Name>
+             |  <Assign>
+           
+<Assign>    ::= <Name> '=' <Expression>
+              
+             
+<Name>      ::= <ID>
+             
+<ID>        ::= Identifier
+             
+<Expression>::= <Expression> '+' <Term>
+             |  <Expression> '-' <Term>
+             |  <Term>
+             
+<Term>      ::= <Term> '*' <Factor>
+             |  <Term> '/' <Factor>
+             |  <Term> '%' <Factor>
+             |  <Factor>
+             
+<Factor>    ::= <Factor> '**' <Value>
+             |  <Value>
+              
+               
+<Value>     ::= '('<Expression>')'
+              | <ID>
+              | <Digit>
+              | <Array>
+              | <Call_function>
+              
+<Digit>     ::= Digit
+                   
+          
+!========================If stmt==============================================
+
+<If_stmt>   ::= if '('<cond>')' '{' <Stmt_list> '}' 
+             |  if '('<cond>')' '{' <Stmt_list> '}' else '{'  <Stmt_list> '}' 
+             |  if '('<cond>')' '{' <Stmt_list> '}' else if '('<cond>')' '{'  <Stmt_list> '}' else '{' <Stmt_list> '}' 
+
+<cond>      ::= <Expression> <Op> <Expression>
+             
+<Op>        ::= '<'|'<='|'>'|'>='|'=='|'!='
+             
+!=========================Switch stmt========================================
+             
+<Switch_stmt>::= switch'(' <Expression> ')' '{' <nl Opt> <Case_block> <nl Opt>
+              |  switch'('    <Cond>    ')' '{' <nl Opt> <Case_block> <nl Opt>
+              
+<Case_block>::= <nl Opt> case <Expression> ':' <Stmt_list> stop <Case_block>
+             |  <nl Opt> case <Literal>    ':' <Stmt_list> stop <Case_block>
+             |  <nl Opt> default ':' <Stmt_list> stop <Case_block>
+             |  <nl Opt> '}'
+             
+             
+<Literal>   ::= StringLiteral
+                       
+
+!===========================For stmt===========================================      
+
+<For_stmt>  ::= for '(' <Variable> ';' <cond> ';' <Step> ')' '{' <Stmt_list> '}' 
+             
+<Step>      ::= '--'<Name>
+             |  <Name>'--'
+             |  '++'<Name>
+             |  <Name>'++'
+             |  <Assign> 
+             
+  
+!===========================while stmt=============================================
+<While_stmt> ::= while '(' <cond> ')' '{' <Stmt_list> '}'   
+              
+
+!==========================Array===============================================
+
+<Array>    ::= '[' <Array_initialization> ']'
+            
+<Array_initialization> ::= <Expression> ',' <Array_initialization>
+                        |  <Expression>
+
+          
+!===========================Function=============================================== 
+
+<Function> ::= <nl Opt> fun <Name> '('<Parameter>')' <nl Opt> '{' <Block_function> '}'
+            |  <nl Opt> '{}'
+            
+<Block_function>::= <stmt_list> <nl Opt> ret <Variable>
+                 |  <stmt_list>
+            
+<Parameter>::= <Variable> ',' <Parameter>
+            |  <Array> ',' <Parameter>
+            |  !null
+
+             
+<Call_function> ::= <Name> '('<Parameter>')'
+!===========================Print===============================================                 
+<Print> ::= print '('<Literal>')'
+          | print '('<Digit>')'
+          | print '('<Name>')'
+            
+
